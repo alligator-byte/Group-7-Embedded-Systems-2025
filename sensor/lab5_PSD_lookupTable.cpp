@@ -1,3 +1,8 @@
+/*
+Code from fifth lab using a look up table to detect PSD distance
+Note: Servo is on here, not to important
+*/
+
 #include <Arduino.h>
 #include <TFT_eSPI.h>
  
