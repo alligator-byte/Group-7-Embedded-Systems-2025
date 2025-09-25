@@ -82,3 +82,8 @@ updateDisplay();
   
   delay(500);
 }
+
+
+//Issues detecting with angled surfaces
+// Alt: store values in list and reference when zero (ie check if something is there)
+// Function = Dissappearning Act
