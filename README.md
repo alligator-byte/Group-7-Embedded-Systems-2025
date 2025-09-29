@@ -3,7 +3,7 @@ Code for Sumo Robot's behaviour, sensors and movement
 
 This will be updated over the course of the project == Please save the link somewhere you'll remember
 
-# Week 10 (pray we have parts by tue/wed latest)
+# Week 10 [WE GOT THE PARTS!!!]
 - Connect parts
 - Code for Sensors
 - Code for Motors
