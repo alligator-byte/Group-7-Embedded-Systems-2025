@@ -13,13 +13,16 @@ This will be updated over the course of the project == Please save the link some
 - Attend check in on Friday 
 
 # Week 11
+- Robot shell completed to some capacity
 - Finalise everything with Code
   -   Detect enemy
   -   Detect floor
   -   Turning?
-- Robot shell completed to some capacity
 - Internals start to connect in place
-- Being Report + Video (weekend)
+  - Double sensors
+  - Double Motors
+  - Double Floor Detection
+- Being Report + Video (weekend type shit)
 
 # Week 12
 - Finalise everything (should be ready by now hopefully) 
