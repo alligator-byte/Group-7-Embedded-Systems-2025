@@ -4,19 +4,25 @@ Code for Sumo Robot's behaviour, sensors and movement
 This will be updated over the course of the project == Please save the link somewhere you'll remember
 
 # Week 10 [WE GOT THE PARTS!!!]
-- Connect parts
-- Code for Sensors
-- Code for Motors
-- Consider layout of circuitry
+- Connect/Test parts ✅
+- Code for Sensors ✅
+- Code for Motors ✅
+- Consider layout of circuitry ✅
+- Print CAD prototype ✅
 - Begin creating behaviour patterns
-- Print CAD prototype
+- Attend check in on Friday 
 
 # Week 11
 - Finalise everything with Code
+  -   Detect enemy
+    - Backware
+    - Forward
+  -   Detect floor
+  -   Turning?
 - Robot shell completed to some capacity
 - Internals start to connect in place
 - Being Report + Video
-- 
+
 # Week 12
 - Finalise everything (should be ready by now hopefully) 
 
