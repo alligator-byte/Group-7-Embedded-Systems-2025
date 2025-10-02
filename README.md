@@ -15,13 +15,11 @@ This will be updated over the course of the project == Please save the link some
 # Week 11
 - Finalise everything with Code
   -   Detect enemy
-    - Backware
-    - Forward
   -   Detect floor
   -   Turning?
 - Robot shell completed to some capacity
 - Internals start to connect in place
-- Being Report + Video
+- Being Report + Video (weekend)
 
 # Week 12
 - Finalise everything (should be ready by now hopefully) 
