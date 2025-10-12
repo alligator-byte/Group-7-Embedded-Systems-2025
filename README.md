@@ -14,22 +14,28 @@ This will be updated over the course of the project == Please save the link some
 
 # Week 11
 - Robot shell completed to some capacity ✅
-- Ashwini's Redesign (Mk2 smaller than first attempt)
-- Print out full shell
 - Finalise everything with Code
   -   Detect enemy ✅
   -   Detect floor ✅
   -   Turning ✅
-  -   Test all together
-  -   Test on new body
-  -   Test in ring
 - Internals start to connect in place ✅
   - Sensors (only one sensor will be used) ✅
   - Double Motors ✅
   - Double Floor Detection ✅
-- Being Report + Video (Arjun's working on this) 
+
 
 # Week 12
-- Finalise everything (should be ready by now hopefully) 
+- Video (Arjun's working on this) 
+- Ashwini's Redesign (Mk2 smaller than first attempt)
+- Print out full shell
+- REPORT Work
+   - budget
+   - code explantion
+   - ciruit explantion
+   - marketing
+  Test all together
+  -   Test on new body
+  -   Test in ring (in the lab rooms)
+ 
 
 
