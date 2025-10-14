@@ -12,7 +12,7 @@ This will be updated over the course of the project == Please save the link some
 - Begin creating behaviour patterns ✅
 - Attend check in on Friday ✅
 
-# Week 11
+# Week 11 [intergration testing]
 - Robot shell completed to some capacity ✅
 - Finalise everything with Code
   -   Detect enemy ✅
@@ -24,15 +24,16 @@ This will be updated over the course of the project == Please save the link some
   - Double Floor Detection ✅
 
 
-# Week 12
-- Video (Arjun's working on this) 
-- Ashwini's Redesign (Mk2 smaller than first attempt)
-- Print out full shell
+# Week 12 [reworking chassis, file tests & report work]
+- Video (Arjun's working on this) ✅
+- Ashwini's Redesign (Mk2 smaller than first attempt)✅
+- Print out full shell ❌
+  - New Shell made of wood and partly 3D printed
 - REPORT Work
-   - budget
-   - code explantion
-   - ciruit explantion
-   - marketing
+   - budget ✅
+   - code explantion 
+   - ciruit explantion 
+   - marketing 
   Test all together
   -   Test on new body
   -   Test in ring (in the lab rooms)
