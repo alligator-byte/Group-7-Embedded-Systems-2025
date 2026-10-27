@@ -1,9 +1,12 @@
-/** (FORTH PROTOTYPE)
+
+/**
+THIRD VERSION
  * CHANGES MADE:
- * - No blocking in loop()
- * - using ENUMS class loop code works somewhat like a switch statment block
- * - NOTE: might be unstable compared to Ver. 3
+ * - LOOP FOR IF-ELSE BLOCK FOR FLOOR DETECTION
+ * - DEFAULT BEHAVIOUR MOVED TO ELSE
+ * - CODE NOW TRACKS HOW LONG IT HASN'T SEEN SOMETHING (WILL JUST TURN RIGHT AS RESULT)
  */
+
 
 #include <Arduino.h>
 #include <TFT_eSPI.h>
@@ -11,7 +14,7 @@
 // --- Stay in the RING!!!!
 #define F_FLOOR 12 //COLOUR SENSOR FRONT
 #define B_FLOOR 13 //COLOUR SENSOR BACK
-#define BLACK_THRESHOLD 25000
+#define BLACK_THRESHOLD 15000
 #define TIMEOUT_PULSE 30000
 
 //connected to motor driver in
@@ -31,14 +34,14 @@ const unsigned long SEARCH_DELAY = 2000; // 2 s before search mode
 //colour sensor tracking
 unsigned long pulseDuration1, pulseDuration2;
 unsigned int frequency1, frequency2;
-bool BackBlack, FrontBlack; //bool vals; TRUE WHEN BLACK
 
 //define sound speed in cm/uS
 #define SOUND_SPEED 0.034
 
 long duration;
 float distanceCm;
-float lastDistance = -1;  
+float lastDistance = -1;   
+
 
 TFT_eSPI tft = TFT_eSPI(); //invokes libs
 
@@ -87,25 +90,6 @@ void turn_left() {
   digitalWrite(sig4, HIGH);
   }
 
-
-//Remove blocking delays**********************************************NEW
-unsigned long actionStartTime = 0;
-unsigned long actionDuration = 0; //how long operation goes for
-enum Action { NONE, FORWARD, BACKWARD, TURN_RIGHT };
-Action currentAction = NONE; //give enums value
-
-
-//ignore - just for printing
-const char* actionToString(Action action) {
-  switch (action) {
-    case FORWARD: return "FORWARD";
-    case BACKWARD: return "BACKWARD";
-    case TURN_RIGHT: return "TURN_RIGHT";
-    case NONE: default: return "IDLE";
-  }
-}
-
-
 // update display fn
 void updateDisplay() {
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -113,13 +97,9 @@ void updateDisplay() {
   tft.setCursor(10, 20);
   tft.printf("Opponent Dist: %.1f cm   ", distanceCm); // extra spaces overwrite old values
 
-  tft.setCursor(10, 50); //show colour
-  tft.printf("F:%u %s  B:%u %s   ",
-    frequency1, FrontBlack ? "B" : "W",
-    frequency2, BackBlack ? "B" : "W");
-
-  tft.setCursor(10, 80); //show action invoked
-  tft.printf("Status: %s    ", actionToString(currentAction));
+  //colour ---> CHECK THIS WORKS******************************************************************************************************
+  tft.setCursor(10, 50);
+  tft.printf("L:%u  R:%u    ", frequency1, frequency2);
 }
 
 /* FOR COLOUR SENSOR
@@ -138,15 +118,11 @@ void readLightSensors(bool &BackBlack, bool &FrontBlack) {
   frequency1 = 1000000UL / pulseDuration1;
   frequency2 = 1000000UL / pulseDuration2;
 
-  Serial.printf("Front :%u %s  Bback:%u %s   ",
-    frequency1, FrontBlack ? "BLACK" : "WHITE",
-    frequency2, BackBlack ? "BLACK" : "WHITE");
+  Serial.printf("L: %u Hz | R: %u Hz\n", frequency1, frequency2);
 
   // Determine black/white state
   FrontBlack = (frequency1 < BLACK_THRESHOLD);
   BackBlack = (frequency2 < BLACK_THRESHOLD);
-
-  updateDisplay();
 }
 
 
@@ -178,14 +154,8 @@ void setup() {
   updateDisplay();
 }
 
-
-
-
 //-----Motor control stuff-----
 void loop() {
-  //check colour first
-  readLightSensors(BackBlack, FrontBlack);
-  
   // Trigger ultrasonic pulse
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -222,41 +192,29 @@ void loop() {
     stopAllMotors();
   }
 
-  unsigned long now = millis();
+  bool BackBlack, FrontBlack;
+  readLightSensors(BackBlack, FrontBlack);
 
-  if (currentAction == NONE){
-    if(BackBlack){ //Black detect @ behind >>> drive forward
-      driveForwardFull();
-      currentAction = FORWARD;
-      actionStartTime = now;
-      actionDuration = 300; //ms, adjust when req.
+  // Example logic: line following
+  if (BackBlack) {
+    //Back sensor BLACK -> move FORWARD!
+    driveForwardFull();
+    delay(700); //does this for 0.7secs *************************CHANGE AS REQUIRED
+  } 
+  else if (FrontBlack) {
+    //Front sensor WHITE -> move BACKWARD!
+    driveBackwardFull();
+    delay(700);
+  } 
+  else { //DEFAULT OPERATION!
+    // Both white ---> continue normal operation
 
-    } else if (FrontBlack) { //Black @ front >>> Drive backward
-      driveBackwardFull();
-      currentAction = BACKWARD;
-      actionStartTime = now;
-      actionDuration = 300;
-    }
-
-    else if (now - lastDetectedTime > SEARCH_DELAY){
+    // Search if no detection for a while
+    if (millis() - lastDetectedTime > SEARCH_DELAY) {
       turn_right();
-      currentAction = TURN_RIGHT;
-      actionDuration = 200;
-      actionStartTime = now;
-    }
-    else if (distanceCm > 0 && distanceCm <30.0){
-      driveForwardFull();
-    } else {
-      stopAllMotors(); //halts when doing nothing
-      currentAction = NONE; //allows it to check
-    }
-
-    }
-
-  // Handle action timing (non-blocking)
-  if (currentAction != NONE && (now - actionStartTime >= actionDuration)) {
-    stopAllMotors();
-    currentAction = NONE;
+      delay(200);  // spin slowly
+}
   }
 
-  }
+  delay(100); 
+}

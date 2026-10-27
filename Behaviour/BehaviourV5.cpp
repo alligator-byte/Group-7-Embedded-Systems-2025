@@ -1,12 +1,18 @@
+/** (5th PROTOTYPE)
+ * CHANGES MADE:
+ * - Uses a threshold of 25000; reads floor sensors at the start of the loop; 
+ * - Higher accuracy to the Ring that will be used in the final competition 
+ * - adds an action/status line to the display and prints sensor states.
+ */
+
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 
 // --- Stay in the RING!!!!
 #define F_FLOOR 12 //COLOUR SENSOR FRONT
 #define B_FLOOR 13 //COLOUR SENSOR BACK
-#define BLACK_THRESHOLD 15000
+#define BLACK_THRESHOLD 25000
 #define TIMEOUT_PULSE 30000
-
 
 //connected to motor driver in
 const int sig1 = 1;
@@ -15,21 +21,24 @@ const int sig3 = 43;
 const int sig4 = 44;
 
 //ultrasonic sensor pins
-const int trigPin = 18;
+const int trigPin = 18; //FRONT
 const int echoPin = 17;
 const int POWER = 15;
+
+unsigned long lastDetectedTime = 0; //"are you still there?" -like from portal 
+const unsigned long SEARCH_DELAY = 2000; // 2 s before search mode
 
 //colour sensor tracking
 unsigned long pulseDuration1, pulseDuration2;
 unsigned int frequency1, frequency2;
+bool BackBlack, FrontBlack; //bool vals; TRUE WHEN BLACK
 
 //define sound speed in cm/uS
 #define SOUND_SPEED 0.034
 
 long duration;
 float distanceCm;
-float lastDistance = -1;   
-
+float lastDistance = -1;  
 
 TFT_eSPI tft = TFT_eSPI(); //invokes libs
 
@@ -51,6 +60,15 @@ void driveForwardFull() {
   digitalWrite(sig4, LOW);
 }
 
+void driveBackwardFull() {
+  // Motor A backward
+  digitalWrite(sig1, LOW);
+  digitalWrite(sig2, HIGH);
+  // Motor B backward
+  digitalWrite(sig3, LOW);
+  digitalWrite(sig4, HIGH);
+}
+
 void turn_left() {
   // Motor A full backward
   digitalWrite(sig1, LOW);
@@ -69,6 +87,25 @@ void turn_left() {
   digitalWrite(sig4, HIGH);
   }
 
+
+//Remove blocking delays**********************************************NEW
+unsigned long actionStartTime = 0;
+unsigned long actionDuration = 0; //how long operation goes for
+enum Action { NONE, FORWARD, BACKWARD, TURN_RIGHT };
+Action currentAction = NONE; //give enums value
+
+
+//ignore - just for printing
+const char* actionToString(Action action) {
+  switch (action) {
+    case FORWARD: return "FORWARD";
+    case BACKWARD: return "BACKWARD";
+    case TURN_RIGHT: return "TURN_RIGHT";
+    case NONE: default: return "IDLE";
+  }
+}
+
+
 // update display fn
 void updateDisplay() {
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -76,9 +113,13 @@ void updateDisplay() {
   tft.setCursor(10, 20);
   tft.printf("Opponent Dist: %.1f cm   ", distanceCm); // extra spaces overwrite old values
 
-  //colour ---> CHECK THIS WORKS******************************************************************************************************
-  tft.setCursor(10, 50);
-  tft.printf("L:%u  R:%u    ", frequency1, frequency2);
+  tft.setCursor(10, 50); //show colour
+  tft.printf("F:%u %s  B:%u %s   ",
+    frequency1, FrontBlack ? "B" : "W",
+    frequency2, BackBlack ? "B" : "W");
+
+  tft.setCursor(10, 80); //show action invoked
+  tft.printf("Status: %s    ", actionToString(currentAction));
 }
 
 /* FOR COLOUR SENSOR
@@ -97,11 +138,15 @@ void readLightSensors(bool &BackBlack, bool &FrontBlack) {
   frequency1 = 1000000UL / pulseDuration1;
   frequency2 = 1000000UL / pulseDuration2;
 
-  Serial.printf("L: %u Hz | R: %u Hz\n", frequency1, frequency2);
+  Serial.printf("Front :%u %s  Bback:%u %s   ",
+    frequency1, FrontBlack ? "BLACK" : "WHITE",
+    frequency2, BackBlack ? "BLACK" : "WHITE");
 
   // Determine black/white state
   FrontBlack = (frequency1 < BLACK_THRESHOLD);
   BackBlack = (frequency2 < BLACK_THRESHOLD);
+
+  updateDisplay();
 }
 
 
@@ -133,8 +178,14 @@ void setup() {
   updateDisplay();
 }
 
+
+
+
 //-----Motor control stuff-----
 void loop() {
+  //check colour first
+  readLightSensors(BackBlack, FrontBlack);
+  
   // Trigger ultrasonic pulse
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -146,8 +197,16 @@ void loop() {
   duration = pulseIn(echoPin, HIGH);
   distanceCm = duration * SOUND_SPEED / 2;
 
-  //default directive 
+  // Check if an opponent is detected
+  if (distanceCm > 0 && distanceCm < 30.0) {
+    lastDetectedTime = millis(); // reset timer when opponent seen
+  }
+
+  /*default directive: 
   turn_right();
+
+  relocated to end of ELSE of this loop()
+  */
 
 
   // Update display only if distance changed drastically
@@ -163,20 +222,41 @@ void loop() {
     stopAllMotors();
   }
 
-  bool BackBlack, FrontBlack;
-  readLightSensors(BackBlack, FrontBlack);
+  unsigned long now = millis();
 
-  // Example logic: line following
-  if (BackBlack) {
-    //TODO: Handle
-  } 
-  else if (FrontBlack) {
-    //TODO: Handle
-  } 
-  else {
-    // Both white ---> continue normal operation
-    driveForwardFull();
+  if (currentAction == NONE){
+    if(BackBlack){ //Black detect @ behind >>> drive forward
+      driveForwardFull();
+      currentAction = FORWARD;
+      actionStartTime = now;
+      actionDuration = 300; //ms, adjust when req.
+
+    } else if (FrontBlack) { //Black @ front >>> Drive backward
+      driveBackwardFull();
+      currentAction = BACKWARD;
+      actionStartTime = now;
+      actionDuration = 300;
+    }
+
+    else if (now - lastDetectedTime > SEARCH_DELAY){
+      turn_right();
+      currentAction = TURN_RIGHT;
+      actionDuration = 200;
+      actionStartTime = now;
+    }
+    else if (distanceCm > 0 && distanceCm <30.0){
+      driveForwardFull();
+    } else {
+      stopAllMotors(); //halts when doing nothing
+      currentAction = NONE; //allows it to check
+    }
+
+    }
+
+  // Handle action timing (non-blocking)
+  if (currentAction != NONE && (now - actionStartTime >= actionDuration)) {
+    stopAllMotors();
+    currentAction = NONE;
   }
 
-  delay(100); 
-}
+  }

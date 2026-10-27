@@ -1,9 +1,10 @@
-/** (FORTH PROTOTYPE)
+/** (4th PROTOTYPE)
  * CHANGES MADE:
  * - No blocking in loop()
  * - using ENUMS class loop code works somewhat like a switch statment block
- * - NOTE: might be unstable compared to Ver. 3
+ * - NOTE: prior to testing was more unstable compared to Ver. 3
  */
+
 
 #include <Arduino.h>
 #include <TFT_eSPI.h>
@@ -11,7 +12,7 @@
 // --- Stay in the RING!!!!
 #define F_FLOOR 12 //COLOUR SENSOR FRONT
 #define B_FLOOR 13 //COLOUR SENSOR BACK
-#define BLACK_THRESHOLD 25000
+#define BLACK_THRESHOLD 15000
 #define TIMEOUT_PULSE 30000
 
 //connected to motor driver in
@@ -38,7 +39,8 @@ bool BackBlack, FrontBlack; //bool vals; TRUE WHEN BLACK
 
 long duration;
 float distanceCm;
-float lastDistance = -1;  
+float lastDistance = -1;   
+
 
 TFT_eSPI tft = TFT_eSPI(); //invokes libs
 
@@ -87,25 +89,6 @@ void turn_left() {
   digitalWrite(sig4, HIGH);
   }
 
-
-//Remove blocking delays**********************************************NEW
-unsigned long actionStartTime = 0;
-unsigned long actionDuration = 0; //how long operation goes for
-enum Action { NONE, FORWARD, BACKWARD, TURN_RIGHT };
-Action currentAction = NONE; //give enums value
-
-
-//ignore - just for printing
-const char* actionToString(Action action) {
-  switch (action) {
-    case FORWARD: return "FORWARD";
-    case BACKWARD: return "BACKWARD";
-    case TURN_RIGHT: return "TURN_RIGHT";
-    case NONE: default: return "IDLE";
-  }
-}
-
-
 // update display fn
 void updateDisplay() {
   tft.setTextColor(TFT_GREEN, TFT_BLACK);
@@ -113,13 +96,11 @@ void updateDisplay() {
   tft.setCursor(10, 20);
   tft.printf("Opponent Dist: %.1f cm   ", distanceCm); // extra spaces overwrite old values
 
-  tft.setCursor(10, 50); //show colour
-  tft.printf("F:%u %s  B:%u %s   ",
-    frequency1, FrontBlack ? "B" : "W",
-    frequency2, BackBlack ? "B" : "W");
-
-  tft.setCursor(10, 80); //show action invoked
-  tft.printf("Status: %s    ", actionToString(currentAction));
+  //colour ---> CHECK THIS WORKS******************************************************************************************************
+  tft.setCursor(10, 50);
+  tft.printf("F:%uHz %s  B:%uHz %s   ",
+    frequency1, FrontBlack ? "BLK" : "WHT",
+    frequency2, BackBlack ? "BLK" : "WHT");
 }
 
 /* FOR COLOUR SENSOR
@@ -138,9 +119,7 @@ void readLightSensors(bool &BackBlack, bool &FrontBlack) {
   frequency1 = 1000000UL / pulseDuration1;
   frequency2 = 1000000UL / pulseDuration2;
 
-  Serial.printf("Front :%u %s  Bback:%u %s   ",
-    frequency1, FrontBlack ? "BLACK" : "WHITE",
-    frequency2, BackBlack ? "BLACK" : "WHITE");
+  Serial.printf("L: %u Hz | R: %u Hz\n", frequency1, frequency2);
 
   // Determine black/white state
   FrontBlack = (frequency1 < BLACK_THRESHOLD);
@@ -179,13 +158,15 @@ void setup() {
 }
 
 
+//Remove blocking delays**********************************************NEW
+unsigned long actionStartTime = 0;
+unsigned long actionDuration = 0; //how long operation goes for
+enum Action { NONE, FORWARD, BACKWARD, TURN_RIGHT };
+Action currentAction = NONE; //give enums value
 
 
 //-----Motor control stuff-----
 void loop() {
-  //check colour first
-  readLightSensors(BackBlack, FrontBlack);
-  
   // Trigger ultrasonic pulse
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
@@ -221,6 +202,8 @@ void loop() {
   } else {
     stopAllMotors();
   }
+
+  readLightSensors(BackBlack, FrontBlack);
 
   unsigned long now = millis();
 
@@ -259,4 +242,5 @@ void loop() {
     currentAction = NONE;
   }
 
+  
   }

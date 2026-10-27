@@ -1,10 +1,6 @@
-/** (FORTH PROTOTYPE)
- * CHANGES MADE:
- * - No blocking in loop()
- * - using ENUMS class loop code works somewhat like a switch statment block
- * - NOTE: might be unstable compared to Ver. 3
- */
-
+/*
+This is the first prototype featuring both sensor and movement of the sumo robot
+*/
 
 #include <Arduino.h>
 #include <TFT_eSPI.h>
@@ -15,6 +11,7 @@
 #define BLACK_THRESHOLD 15000
 #define TIMEOUT_PULSE 30000
 
+
 //connected to motor driver in
 const int sig1 = 1;
 const int sig2 = 2;
@@ -22,17 +19,13 @@ const int sig3 = 43;
 const int sig4 = 44;
 
 //ultrasonic sensor pins
-const int trigPin = 18; //FRONT
+const int trigPin = 18;
 const int echoPin = 17;
 const int POWER = 15;
-
-unsigned long lastDetectedTime = 0; //"are you still there?" -like from portal 
-const unsigned long SEARCH_DELAY = 2000; // 2 s before search mode
 
 //colour sensor tracking
 unsigned long pulseDuration1, pulseDuration2;
 unsigned int frequency1, frequency2;
-bool BackBlack, FrontBlack; //bool vals; TRUE WHEN BLACK
 
 //define sound speed in cm/uS
 #define SOUND_SPEED 0.034
@@ -62,15 +55,6 @@ void driveForwardFull() {
   digitalWrite(sig4, LOW);
 }
 
-void driveBackwardFull() {
-  // Motor A backward
-  digitalWrite(sig1, LOW);
-  digitalWrite(sig2, HIGH);
-  // Motor B backward
-  digitalWrite(sig3, LOW);
-  digitalWrite(sig4, HIGH);
-}
-
 void turn_left() {
   // Motor A full backward
   digitalWrite(sig1, LOW);
@@ -98,9 +82,7 @@ void updateDisplay() {
 
   //colour ---> CHECK THIS WORKS******************************************************************************************************
   tft.setCursor(10, 50);
-  tft.printf("F:%uHz %s  B:%uHz %s   ",
-    frequency1, FrontBlack ? "BLK" : "WHT",
-    frequency2, BackBlack ? "BLK" : "WHT");
+  tft.printf("L:%u  R:%u    ", frequency1, frequency2);
 }
 
 /* FOR COLOUR SENSOR
@@ -124,8 +106,6 @@ void readLightSensors(bool &BackBlack, bool &FrontBlack) {
   // Determine black/white state
   FrontBlack = (frequency1 < BLACK_THRESHOLD);
   BackBlack = (frequency2 < BLACK_THRESHOLD);
-
-  updateDisplay();
 }
 
 
@@ -157,14 +137,6 @@ void setup() {
   updateDisplay();
 }
 
-
-//Remove blocking delays**********************************************NEW
-unsigned long actionStartTime = 0;
-unsigned long actionDuration = 0; //how long operation goes for
-enum Action { NONE, FORWARD, BACKWARD, TURN_RIGHT };
-Action currentAction = NONE; //give enums value
-
-
 //-----Motor control stuff-----
 void loop() {
   // Trigger ultrasonic pulse
@@ -178,16 +150,8 @@ void loop() {
   duration = pulseIn(echoPin, HIGH);
   distanceCm = duration * SOUND_SPEED / 2;
 
-  // Check if an opponent is detected
-  if (distanceCm > 0 && distanceCm < 30.0) {
-    lastDetectedTime = millis(); // reset timer when opponent seen
-  }
-
-  /*default directive: 
+  //default directive 
   turn_right();
-
-  relocated to end of ELSE of this loop()
-  */
 
 
   // Update display only if distance changed drastically
@@ -203,44 +167,20 @@ void loop() {
     stopAllMotors();
   }
 
+  bool BackBlack, FrontBlack;
   readLightSensors(BackBlack, FrontBlack);
 
-  unsigned long now = millis();
-
-  if (currentAction == NONE){
-    if(BackBlack){ //Black detect @ behind >>> drive forward
-      driveForwardFull();
-      currentAction = FORWARD;
-      actionStartTime = now;
-      actionDuration = 300; //ms, adjust when req.
-
-    } else if (FrontBlack) { //Black @ front >>> Drive backward
-      driveBackwardFull();
-      currentAction = BACKWARD;
-      actionStartTime = now;
-      actionDuration = 300;
-    }
-
-    else if (now - lastDetectedTime > SEARCH_DELAY){
-      turn_right();
-      currentAction = TURN_RIGHT;
-      actionDuration = 200;
-      actionStartTime = now;
-    }
-    else if (distanceCm > 0 && distanceCm <30.0){
-      driveForwardFull();
-    } else {
-      stopAllMotors(); //halts when doing nothing
-      currentAction = NONE; //allows it to check
-    }
-
-    }
-
-  // Handle action timing (non-blocking)
-  if (currentAction != NONE && (now - actionStartTime >= actionDuration)) {
-    stopAllMotors();
-    currentAction = NONE;
+  // Example logic: line following
+  if (BackBlack) {
+    //TODO: Handle
+  } 
+  else if (FrontBlack) {
+    //TODO: Handle
+  } 
+  else {
+    // Both white ---> continue normal operation
+    driveForwardFull();
   }
 
-  
-  }
+  delay(100); 
+}
