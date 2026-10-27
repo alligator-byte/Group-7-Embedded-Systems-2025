@@ -1,42 +1,30 @@
 # Group-7-Embedded-Systems-2025
-Code for Sumo Robot's behaviour, sensors and movement
-
-This will be updated over the course of the project == Please save the link somewhere you'll remember
-
-# Week 10 [parts arrived]
-- Connect/Test parts ✅
-- Code for Sensors ✅
-- Code for Motors ✅
-- Consider layout of circuitry ✅
-- Print CAD prototype ✅
-- Begin creating behaviour patterns ✅
-- Attend check in on Friday ✅
-
-# Week 11 [intergration testing]
-- Robot shell completed to some capacity ✅
-- Finalise everything with Code
-  -   Detect enemy ✅
-  -   Detect floor ✅
-  -   Turning ✅
-- Internals start to connect in place ✅
-  - Sensors (only one sensor will be used) ✅
-  - Double Motors ✅
-  - Double Floor Detection ✅
+Code for Group 7's Sumo Robot's behaviour. The code featured uses sensors to determine the robot's location within the fighting area, that information will instruct the robot on what kind of movement/attack it should use to counter its current predicament. 
 
 
-# Week 12 [reworking chassis, file tests & report work]
-- Video (Arjun's working on this) ✅
-- Ashwini's Redesign (Mk2 smaller than first attempt)✅
-- Print out full shell ❌
-  - New Shell made of wood and partly 3D printed
-- REPORT Work
-   - budget ✅
-   - code explantion 
-   - ciruit explantion 
-   - marketing 
-  Test all together
-  -   Test on new body
-  -   Test in ring (in the lab rooms)
+# Development Pipeline:
+## Week 10 [Parts Arrived!]
+- Connected and tested parts and motors
+- Code for completed for Sensors and motors  
+- Consider layout of circuitry and completed required diagrams
+- Printed out CAD prototype 
+- Begin drafting out behaviour patterns 
+
+## Week 11 [Integration Testing]
+- Robot shell completed (mixture of 3D printing and woodwork)
+- Finetuning sensor code to contain the following functions
+  -   Detect enemy 
+  -   Detect floor
+  -   Turning left/right
+- Internals start to connect in place 
+  - Sensors (two sensor for floor, one sensor for enemy detection)
+  - Double Motors 
+
+## Week 12 [Reworking Code]
+- Robot Tested in Ring once completed
+- 1 important sensor failed -> Code rewritten to account for failure
+- Successfully achieved 9th place (out of 30) in competition against other students robots 
+  
  
 
 
