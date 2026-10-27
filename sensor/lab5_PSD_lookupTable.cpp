@@ -1,6 +1,6 @@
 /*
 Code from fifth lab using a look up table to detect PSD distance
-Note: Servo is on here, not to important
+Note: Included as a reference to aid with motor/sensor programming
 */
 
 #include <Arduino.h>
